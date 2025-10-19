@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Eye test</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: black;
+      }
+      body {
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        user-select: none;
+        padding-bottom: 20vh;
+      }
+      v-cloak {
+        display: none;
+      }
+      #app {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .tips {
+        color: #666;
+        margin: 2em 0 2em;
+        text-align: center;
+      }
+      .tips .section {
+        margin-top: 1em;
+        text-align: start;
+      }
+      .red-green {
+        display: flex;
+        margin-top: 4rem;
+        width: 36rem;
+      }
+      .side {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        justify-content: flex-end;
+        padding: 4em 2em 4em 2em;
+        padding-inline-start: 0;
+        overflow: hidden;
+      }
+      .side.red {
+        background: oklch(62% 0.22 28);
+      }
+      .side.green {
+        background: oklch(62% 0.22 144);
+      }
+      .side.flip {
+        direction: rtl;
+      }
+      .letters {
+        display: flex;
+        flex-direction: column;
+        color: #000;
+        font-weight: bold;
+        gap: 16px;
+      }
+      .letters .line {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5em;
+      }
+      .line > span {
+        width: 1em;
+        text-align: center;
+      }
+      .letters .size {
+        font-size: 0.5em;
+      }
+
+      .shapes {
+        display: flex;
+        gap: 24px;
+        margin-inline-start: -2rem;
+      }
+      .shape {
+        width: 4rem;
+        height: 4rem;
+        box-sizing: border-box;
+      }
+      .circle {
+        border-radius: 50%;
+        border: 4px solid #000;
+      }
+      .shape.outer {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .shape.inner {
+        width: 75%;
+        height: 75%;
+      }
+      .square {
+        border: 4px solid #000;
+        border-radius: 0;
+      }
+
+      section {
+        height: 100vh;
+      }
+      .astig {
+        width: 440px;
+        height: 440px;
+        background: #fff;
+        border-radius: 50%;
+        padding: 20px;
+      }
+      .astig .spoke {
+        stroke: #000;
+        stroke-width: 1;
+        stroke-linecap: round;
+        stroke-dasharray: 10, 5;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app" v-cloak>
+      <div class="tips">
+        ⚠️注意：本工具可用于检测视力水平，但无法用作专业的视力检测工具。<br />
+        💡请在良好的光线条件下使用本工具。
+      </div>
+      <section>
+        <div class="tips" style="text-align: initial">
+          <h2>红绿测试</h2>
+          测量极限视力距离。建议单眼测试。
+          <ol>
+            <li>离远屏幕直到绿色明显模糊</li>
+            <li>靠近屏幕直到绿色变得清晰可见，且清晰度基本与红色持平</li>
+            <li>如果绿色清晰但红色模糊，说明距离过近</li>
+            <li>点击左侧重新生成字母，点击右侧交换红绿色的位置</li>
+          </ol>
+        </div>
+        <div class="red-green" @click="handleSwapColor">
+          <div
+            class="side"
+            :class="[flip === !swapColor ? 'red' : 'green', {flip}]"
+            v-for="flip in [true, false]"
+            @click="handleSideClick(flip)"
+          >
+            <div class="letters">
+              <div
+                v-for="(line, index) in letterLines"
+                :key="index"
+                class="line"
+                :style="{
+                  fontSize: `${letterSizes[index]}px`,
+                  marginInlineStart: `${(letterSizes[index] - 4) / 2}px`,
+                }"
+              >
+                <span v-for="letter in line" :key="letter">{{ letter }}</span>
+                <div class="size">{{ letterSizes[index] }}</div>
+              </div>
+            </div>
+            <div class="shapes">
+              <div class="shape circle outer">
+                <div class="shape circle inner"></div>
+              </div>
+              <div class="shape circle outer" style="scale: 0.75">
+                <div class="shape circle inner"></div>
+              </div>
+              <div class="shape square outer">
+                <div class="shape square inner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="tips" style="text-align: initial">
+          <h2>散光测试</h2>
+          务必单眼测试。<br />
+          <ol>
+            <li>移动到图片基本清晰的距离</li>
+            <li>观察是否有某些方向的线条和其他方向明显不同</li>
+            <li>扭动头部，观察线条是否有变化</li>
+          </ol>
+        </div>
+        <div class="astig" role="img" aria-label="散光测试圈">
+          <svg
+            viewBox="0 0 200 200"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <circle cx="100" cy="100" r="2" fill="#000" />
+
+            <g class="spokes">
+              <g
+                :transform="`rotate(${angle} 100 100)`"
+                v-for="angle in astigAngles"
+              >
+                <text
+                  v-if="angle % 30 === 0"
+                  x="100"
+                  y="10"
+                  font-size="12"
+                  text-anchor="middle"
+                >
+                  {{ angle === 90 ? 0 : 180 - ((angle + 90) % 180) }}
+                </text>
+                <line class="spoke" x1="100" y1="20" x2="100" y2="80" />
+              </g>
+            </g>
+          </svg>
+        </div>
+      </section>
+    </div>
+    <script type="module">
+      import {
+        createApp,
+        ref,
+        computed,
+        onMounted,
+        watch,
+      } from "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js";
+
+      const CHARS = "ABCDEFGHJKMNOPQRSTUWXYZ";
+
+      function randomChar() {
+        return CHARS.charAt(Math.floor(Math.random() * CHARS.length));
+      }
+
+      const app = createApp({
+        setup() {
+          const generateLetterLines = () => {
+            return Array.from({ length: 10 }, () => {
+              const line = [];
+              for (let i = 0; i < 3; i++) {
+                while (true) {
+                  const char = randomChar();
+                  if (!line.includes(char)) {
+                    line.push(char);
+                    break;
+                  }
+                }
+              }
+
+              return line;
+            });
+          };
+          const letterLines = ref(generateLetterLines());
+
+          const letterSizes = computed(() => {
+            let size = 8;
+            const sizes = [];
+            for (let i = 0; i < letterLines.value.length; i++) {
+              sizes.push(size);
+              size += 4;
+            }
+            return sizes.reverse();
+          });
+
+          const astigAngles = computed(() => {
+            const interval = 10;
+            const angles = [];
+            for (let angle = 0; angle < 360; angle += interval) {
+              angles.push(angle);
+            }
+            return angles;
+          });
+
+          const swapColor = ref(false);
+          const handleSideClick = (flipSide) => {
+            if (flipSide) {
+              letterLines.value = generateLetterLines();
+            } else {
+              swapColor.value = !swapColor.value;
+            }
+          };
+          return {
+            swapColor,
+            astigAngles,
+            letterLines,
+            letterSizes,
+            handleSideClick,
+          };
+        },
+      });
+
+      app.mount("#app");
+    </script>
+  </body>
+</html>
