@@ -57,6 +57,9 @@
       .side.green {
         background: oklch(62% 0.22 144);
       }
+      .side.white {
+        background: white;
+      }
       .side.flip {
         direction: rtl;
       }
@@ -140,13 +143,13 @@
             <li>离远屏幕直到绿色明显模糊</li>
             <li>靠近屏幕直到绿色变得清晰可见，且清晰度基本与红色持平</li>
             <li>如果绿色清晰但红色模糊，说明距离过近</li>
-            <li>点击左侧重新生成字母，点击右侧交换红绿色的位置</li>
+            <li>点击左侧重新生成字母，点击右侧切换颜色</li>
           </ol>
         </div>
         <div class="red-green" @click="handleSwapColor">
           <div
             class="side"
-            :class="[flip === !swapColor ? 'red' : 'green', {flip}]"
+            :class="[((colorMode === 'red-green') === flip) ? 'red' : 'green', { white: colorMode === 'white' }, { flip }]"
             v-for="flip in [true, false]"
             @click="handleSideClick(flip)"
           >
@@ -211,7 +214,7 @@
                 >
                   {{ angle === 90 ? 0 : 180 - ((angle + 90) % 180) }}
                 </text>
-                <line class="spoke" x1="100" y1="20" x2="100" y2="80" />
+                <line class="spoke" x1="100" y1="20" x2="100" y2="85" />
               </g>
             </g>
           </svg>
@@ -227,7 +230,8 @@
         watch,
       } from "https://cdn.jsdelivr.net/npm/vue@3/dist/vue.esm-browser.prod.js";
 
-      const CHARS = "ABCDEFGHJKMNOPQRSTUWXYZ";
+      const CHARS = "CDHKNORSVZ";
+      const COLOR_MODES = ['red-green', 'green-red', 'white'];
 
       function randomChar() {
         return CHARS.charAt(Math.floor(Math.random() * CHARS.length));
@@ -272,16 +276,19 @@
             return angles;
           });
 
-          const swapColor = ref(false);
+          const colorModeValue = ref(0);
+          const colorMode = computed(() => {
+            return COLOR_MODES[colorModeValue.value];
+          });
           const handleSideClick = (flipSide) => {
             if (flipSide) {
               letterLines.value = generateLetterLines();
             } else {
-              swapColor.value = !swapColor.value;
+              colorModeValue.value = (colorModeValue.value + 1) % COLOR_MODES.length;
             }
           };
           return {
-            swapColor,
+            colorMode,
             astigAngles,
             letterLines,
             letterSizes,
